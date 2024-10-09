@@ -47,6 +47,7 @@ function MyApp({ Component, pageProps }: AppProps) {
         config={{
           embeddedWallets: {
             createOnLogin: "users-without-wallets",
+            showWalletUIs: false
           },
           supportedChains: [blast],
           defaultChain: blast,
