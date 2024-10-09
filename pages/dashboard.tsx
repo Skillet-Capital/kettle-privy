@@ -4,6 +4,8 @@ import { getAccessToken, usePrivy } from "@privy-io/react-auth";
 import { useSmartWallets } from "@privy-io/react-auth/smart-wallets";
 import Head from "next/head";
 
+import { Wallet } from "ethers";
+
 async function verifyToken() {
   const url = "/api/verify";
   const accessToken = await getAccessToken();
@@ -50,7 +52,7 @@ export default function DashboardPage() {
     if (!client) {
       alert("No Smart Wallet Client");
     }
-    
+
     const domain = {
       name: 'Ether Mail',
       version: '1',
@@ -79,11 +81,11 @@ export default function DashboardPage() {
       message: {
         from: {
           name: 'Cow',
-          wallet: '0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826',
+          wallet: Wallet.createRandom().address,
         },
         to: {
           name: 'Bob',
-          wallet: '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB',
+          wallet: Wallet.createRandom().address,
         },
         contents: 'Hello, Bob!',
       },
