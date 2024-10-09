@@ -1,6 +1,7 @@
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { getAccessToken, usePrivy } from "@privy-io/react-auth";
+import { useSmartWallets } from "@privy-io/react-auth/smart-wallets";
 import Head from "next/head";
 
 async function verifyToken() {
@@ -17,7 +18,9 @@ async function verifyToken() {
 
 export default function DashboardPage() {
   const [verifyResult, setVerifyResult] = useState();
+  const [signature, setSignature] = useState("");
   const router = useRouter();
+  const {client} = useSmartWallets();
   const {
     ready,
     authenticated,
@@ -42,6 +45,52 @@ export default function DashboardPage() {
       router.push("/");
     }
   }, [ready, authenticated, router]);
+
+  async function signData() {
+    if (!client) {
+      alert("No Smart Wallet Client");
+    }
+    
+    const domain = {
+      name: 'Ether Mail',
+      version: '1',
+      chainId: 1,
+      verifyingContract: '0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC',
+    } as const
+     
+    // The named list of all type definitions
+    const types = {
+      Person: [
+        { name: 'name', type: 'string' },
+        { name: 'wallet', type: 'address' },
+      ],
+      Mail: [
+        { name: 'from', type: 'Person' },
+        { name: 'to', type: 'Person' },
+        { name: 'contents', type: 'string' },
+      ],
+    } as const
+
+    const signature = await client.signTypedData({
+      account: client.account,
+      domain,
+      types,
+      primaryType: 'Mail',
+      message: {
+        from: {
+          name: 'Cow',
+          wallet: '0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826',
+        },
+        to: {
+          name: 'Bob',
+          wallet: '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB',
+        },
+        contents: 'Hello, Bob!',
+      },
+    })
+
+    setSignature(signature);  
+  }
 
   const numAccounts = user?.linkedAccounts?.length || 0;
   const canRemoveAccount = numAccounts > 1;
@@ -198,6 +247,13 @@ export default function DashboardPage() {
                 Verify token on server
               </button>
 
+              <button
+                onClick={() => signData()}
+                className="text-sm bg-violet-600 hover:bg-violet-700 py-2 px-4 rounded-md text-white border-none"
+              >
+                Sign Message
+              </button>
+
               {Boolean(verifyResult) && (
                 <details className="w-full">
                   <summary className="mt-6 font-bold uppercase text-sm text-gray-600">
@@ -211,10 +267,17 @@ export default function DashboardPage() {
             </div>
 
             <p className="mt-6 font-bold uppercase text-sm text-gray-600">
+              Signature
+            </p>
+            <pre className="bg-slate-700 text-slate-50 font-mono p-4 text-xs sm:text-sm rounded-md mt-2">
+              {signature}
+            </pre>
+
+            <p className="mt-6 font-bold uppercase text-sm text-gray-600">
               User object
             </p>
             <pre className="max-w-4xl bg-slate-700 text-slate-50 font-mono p-4 text-xs sm:text-sm rounded-md mt-2">
-              {JSON.stringify(user, null, 2)}
+              {JSON.stringify(client, null, 2)}
             </pre>
           </>
         ) : null}
