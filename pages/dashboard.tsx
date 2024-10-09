@@ -74,7 +74,6 @@ export default function DashboardPage() {
     } as const
 
     const signature = await client.signTypedData({
-      account: client.account,
       domain,
       types,
       primaryType: 'Mail',
